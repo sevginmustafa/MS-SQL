@@ -397,3 +397,120 @@ INSERT INTO Occupancies (Id, EmployeeId, DateOccupied, AccountNumber, RoomNumber
 (1, 1, '1/1/2000', 1, 1, NULL, 4.5, NULL),
 (2, 1, '1/1/2000', 1, 1, NULL, NULL, NULL),
 (3, 1, '1/1/2000', 1, 1, NULL, 4.5, NULL)
+
+
+--Problem 16. Create SoftUni Database
+CREATE DATABASE Softuni
+
+CREATE TABLE Towns
+(
+	Id INT PRIMARY KEY IDENTITY,
+	[Name] VARCHAR(50) NOT NULL
+)
+
+CREATE TABLE Addresses
+(
+	Id INT PRIMARY KEY IDENTITY,
+	AddressText VARCHAR(200),
+	TownId INT,
+	CONSTRAINT FK_TownAddress FOREIGN KEY (TownId) REFERENCES Towns(Id)
+)
+
+CREATE TABLE Departments
+(
+	Id INT PRIMARY KEY IDENTITY,
+	[Name] VARCHAR(50) NOT NULL
+)
+
+CREATE TABLE Employees
+(
+	Id INT PRIMARY KEY IDENTITY,
+	FirstName VARCHAR(50) NOT NULL,
+	MiddleName VARCHAR(50) NOT NULL,
+	LastName VARCHAR(50) NOT NULL,
+	JobTitle VARCHAR(50) NOT NULL,
+	DepartmentId INT,
+	CONSTRAINT FK_EmployeeDepartment FOREIGN KEY (DepartmentId) REFERENCES Departments(Id),
+	HireDate DATETIME NOT NULL,
+	Salary DECIMAL(10,2) NOT NULL,
+	AddressId INT,
+	CONSTRAINT FK_EmployeeAddress FOREIGN KEY (AddressId) REFERENCES Addresses(Id)
+)
+
+
+--Problem 17. Backup Database
+
+
+--Problem 18. Basic Insert
+INSERT INTO Towns([Name]) VALUES
+('Sofia'),
+('Plovdiv'),
+('Varna'),
+('Burgas')
+
+INSERT INTO Departments([Name]) VALUES
+('Engineering'),
+('Sales'),
+('Marketing'),
+('Software Development'),
+('Quality Assurance')
+
+INSERT INTO Employees(FirstName, MiddleName, LastName, JobTitle, DepartmentId, HireDate, Salary, AddressId) VALUES
+('Ivan', 'Ivanov', 'Ivanov', '.NET Developer', 4, '2013/01/02', 3500, NULL),
+('Petar', 'Petrov', 'Petrov', 'Senior Engineer', 1, '2004/03/02', 4000, NULL),
+('Maria', 'Petrova', 'Ivanova', 'Intern', 5, '2016/08/28', 525.25, NULL),
+('Georgi', 'Teziev', 'Ivanov', 'CEO', 2, '2007/12/09', 3000, NULL),
+('Peter', 'Pan', 'Pan', 'Intern', 3, '2016/08/28', 599.88, NULL)
+
+
+--Problem 19. Basic Select All Fields
+SELECT * FROM Towns
+
+SELECT * FROM Departments
+
+SELECT * FROM Employees
+
+
+--Problem 20. Basic Select All Fields and Order Them
+SELECT * FROM Towns
+ORDER BY [Name]
+
+SELECT * FROM Departments
+ORDER BY [Name]
+
+SELECT * FROM Employees
+ORDER BY Salary DESC
+
+
+--Problem 21. Basic Select Some Fields
+SELECT [Name]
+FROM Towns
+ORDER BY [Name]
+
+SELECT [Name]
+FROM Departments
+ORDER BY [Name]
+
+SELECT FirstName, LastName, JobTitle, Salary
+FROM Employees
+ORDER BY Salary DESC
+
+
+--Problem 22. Increase Employees Salary
+UPDATE Employees
+SET Salary*=1.1
+
+SELECT Salary
+FROM Employees
+
+
+--Problem 23. Decrease Tax Rate
+UPDATE Payments
+SET TaxRate*=0.97
+
+SELECT TaxRate
+FROM Payments
+
+
+--Problem 24. Delete All Records
+DELETE FROM Occupancies
