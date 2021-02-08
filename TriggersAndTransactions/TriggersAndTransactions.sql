@@ -36,3 +36,130 @@ AS
 
 --3. Deposit Money
 CREATE PROC usp_DepositMoney (@AccountId INT, @MoneyAmount MONEY)
+AS
+BEGIN TRANSACTION	
+DECLARE @account INT = (SELECT Id FROM Accounts WHERE Id = @AccountId) 
+IF(@account IS NULL)
+BEGIN
+	ROLLBACK;
+	THROW 50001, 'Invalid @AccountId', 1
+	RETURN
+END
+IF(@MoneyAmount < 0)
+BEGIN
+	ROLLBACK;
+	THROW 50002, '@MoneyAmount cannot be negative', 1
+	RETURN
+END
+UPDATE Accounts SET Balance += @MoneyAmount
+WHERE Id = @AccountId
+COMMIT
+
+
+--4. Withdraw Money
+CREATE PROC usp_WithdrawMoney (@AccountId INT, @MoneyAmount MONEY)
+AS
+BEGIN TRANSACTION
+DECLARE @account INT = (SELECT Id FROM Accounts WHERE Id = @AccountId)
+IF(@account IS NULL)
+BEGIN
+	ROLLBACK;
+	THROW 50001, 'Invalid @AccountId', 1
+	RETURN
+END
+IF(@MoneyAmount < 0)
+BEGIN
+	ROLLBACK;
+	THROW 50002, '@MoneyAmount cannot be negative', 1
+	RETURN
+END
+UPDATE Accounts SET Balance -= @MoneyAmount
+WHERE Id = @AccountId
+COMMIT
+
+
+--5. Money Transfer
+CREATE PROC usp_TransferMoney(@SenderId INT, @ReceiverId INT, @Amount MONEY)
+AS
+BEGIN TRANSACTION
+DECLARE @sender INT = (SELECT Id FROM Accounts WHERE Id = @SenderId)
+DECLARE @receiver INT = (SELECT Id FROM Accounts WHERE Id = @SenderId)
+IF(@sender IS NULL OR @receiver IS NULL)
+BEGIN
+	ROLLBACK;
+	THROW 50001, 'Invalid @AccountId', 1
+	RETURN
+END
+IF(@Amount < 0)
+BEGIN
+	ROLLBACK;
+	THROW 50002, '@MoneyAmount cannot be negative', 1
+	RETURN
+END
+UPDATE Accounts SET Balance -= @Amount
+WHERE Id = @sender
+UPDATE Accounts SET Balance += @Amount
+WHERE Id = @ReceiverId
+COMMIT
+
+
+--6. Trigger
+
+
+--7. *Massive Shopping
+--SELECT * FROM Users U
+--JOIN UsersGames UG ON UG.UserId = U.Id
+--JOIN Games G ON G.Id = UG.GameId
+--JOIN UserGameItems UGI ON UGI.UserGameId = UG.GameId
+--JOIN Items I ON I.Id = UGI.ItemId
+--WHERE U.Username = 'Stamat' AND G.Name = 'Safflower'
+
+
+--8. Employees with Three Projects
+CREATE PROC usp_AssignProject(@emloyeeId INT, @projectID INT)
+AS
+BEGIN TRANSACTION
+DECLARE @projectsCount INT = (SELECT COUNT(*) FROM EmployeesProjects WHERE EmployeeID = @emloyeeId)
+DECLARE @employee INT = (SELECT EmployeeID FROM Employees WHERE EmployeeID = @emloyeeId)
+DECLARE @project INT = (SELECT ProjectID FROM Projects WHERE ProjectID = @projectID)
+IF(@employee IS NULL OR @project IS NULL)
+BEGIN
+	ROLLBACK;
+	THROW 50001, 'Invalid @emloyeeId OR @projectID', 1
+	RETURN
+END
+IF(@projectsCount >= 3)
+BEGIN
+	ROLLBACK;
+	THROW 50003, 'The employee has too many projects!', 1
+	RETURN
+END
+IF(@projectID IN(SELECT ProjectID FROM EmployeesProjects WHERE EmployeeID = @emloyeeId))
+BEGIN
+	ROLLBACK;
+	THROW 50004, 'The employee is already assigned for this project', 1
+	RETURN
+END
+INSERT INTO EmployeesProjects (EmployeeID, ProjectID) VALUES
+(@emloyeeId, @projectID)
+COMMIT
+
+
+--9. Delete Employees
+CREATE TABLE Deleted_Employees
+(
+	EmployeeId INT PRIMARY KEY, 
+	FirstName NVARCHAR(50), 
+	LastName NVARCHAR(50), 
+	MiddleName NVARCHAR(50), 
+	JobTitle NVARCHAR(150),
+	DepartmentId INT,
+	Salary MONEY
+)
+
+CREATE TRIGGER tr_FiredEmployees
+ON Employees FOR DELETE
+AS
+	INSERT Deleted_Employees (FirstName, LastName, MiddleName, JobTitle, DepartmentId, Salary)
+					   SELECT FirstName, LastName, MiddleName, JobTitle, DepartmentID, Salary 
+					   FROM deleted
