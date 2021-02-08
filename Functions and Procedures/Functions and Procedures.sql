@@ -80,3 +80,85 @@ END
 
 
 --8. * Delete Employees and Departments
+CREATE PROC usp_DeleteEmployeesFromDepartment(@DepartmentId INT)
+AS
+	ALTER TABLE Departments
+	ALTER COLUMN ManagerID INT NULL
+	
+	DELETE FROM EmployeesProjects
+	WHERE EmployeeID IN(SELECT EmployeeID FROM Employees WHERE DepartmentID = @DepartmentId)
+	
+	UPDATE Employees
+	SET ManagerID = NULL
+	WHERE EmployeeID IN(SELECT EmployeeID FROM Employees WHERE DepartmentID = @DepartmentId)
+	
+	UPDATE Employees
+	SET ManagerID = NULL
+	WHERE ManagerID IN(SELECT EmployeeID FROM Employees WHERE DepartmentID = @DepartmentId)
+	
+	UPDATE Departments
+	SET ManagerID = NULL
+	WHERE DepartmentID = @DepartmentId
+	
+	DELETE FROM Employees
+	WHERE DepartmentID = @DepartmentId
+	
+	DELETE FROM Departments
+	WHERE DepartmentID = @DepartmentId
+	
+	SELECT COUNT(*) FROM Employees WHERE DepartmentID = @DepartmentId
+
+
+--9. Find Full Name
+CREATE PROC usp_GetHoldersFullName
+AS
+	SELECT FirstName + ' ' + LastName AS [Full Name] FROM AccountHolders
+
+
+--10. People with Balance Higher Than
+CREATE PROC usp_GetHoldersWithBalanceHigherThan(@inputAmount DECIMAL(10,2))
+AS
+	SELECT AH.FirstName, AH.LastName FROM AccountHolders AH
+	JOIN Accounts A ON A.AccountHolderId = AH.Id
+	GROUP BY AH.FirstName, AH.LastName
+	HAVING SUM(A.Balance) > @inputAmount
+	ORDER BY AH.FirstName, AH.LastName
+
+
+--11. Future Value Function
+CREATE FUNCTION ufn_CalculateFutureValue(@sum DECIMAL(20,2), @yearlyInterestRate DECIMAL(20,10), @numberOfYears INT)
+RETURNS DECIMAL(20,4)
+AS
+BEGIN
+	RETURN ((POWER(1 + @yearlyInterestRate, @numberOfYears)) - 1) * @sum + @sum
+END
+
+
+--12. Calculating Interest
+CREATE PROC usp_CalculateFutureValueForAccount(@accountID INT, @yearlyInterestRate DECIMAL(20,10))
+AS
+	SELECT 
+		AH.Id AS [Account Id],
+		AH.FirstName AS [First Name], 
+		AH.LastName AS [Last Name], 
+		A.Balance AS [Current Balance],
+		dbo.ufn_CalculateFutureValue(A.Balance, @yearlyInterestRate, 5) AS [Balance in 5 years] 
+	FROM AccountHolders AH
+	JOIN Accounts A ON A.AccountHolderId = AH.Id
+	WHERE A.Id = @accountID
+
+
+--13. *Scalar Function: Cash in User Games Odd Rows
+CREATE FUNCTION ufn_CashInUsersGames(@GameName NVARCHAR(100))
+RETURNS TABLE
+AS
+RETURN SELECT SUM(T.Cash) AS SumCash 
+	FROM (SELECT 
+			G.Id, 
+			UG.Cash, 
+			G.Name,
+			ROW_NUMBER () OVER (ORDER BY UG.Cash DESC) AS RowNumber
+		FROM UsersGames UG
+		JOIN GAMES G ON G.Id = UG.GameId
+		WHERE G.Name = @GameName) AS T
+	WHERE RowNumber % 2 = 1
