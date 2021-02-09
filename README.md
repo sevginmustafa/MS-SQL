@@ -1,2 +1,2 @@
 # MS-SQL
-Here I'll add the solutions of all exercises from the course!
+MS SQL Course from January 2021 at SoftUni
