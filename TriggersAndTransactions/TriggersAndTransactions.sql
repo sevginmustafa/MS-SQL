@@ -107,12 +107,34 @@ COMMIT
 
 
 --7. *Massive Shopping
---SELECT * FROM Users U
---JOIN UsersGames UG ON UG.UserId = U.Id
---JOIN Games G ON G.Id = UG.GameId
---JOIN UserGameItems UGI ON UGI.UserGameId = UG.GameId
---JOIN Items I ON I.Id = UGI.ItemId
---WHERE U.Username = 'Stamat' AND G.Name = 'Safflower'
+DECLARE @priceItemsFromLevel11To12 MONEY = (SELECT SUM(Price) FROM Items WHERE MinLevel BETWEEN 11 AND 12)
+DECLARE @StamatCash MONEY = (SELECT Cash FROM UsersGames WHERE Id = 110)
+IF(@StamatCash >= @priceItemsFromLevel11To12)
+BEGIN
+	BEGIN TRANSACTION
+		UPDATE UsersGames SET Cash -= @priceItemsFromLevel11To12
+		WHERE Id = 110
+		INSERT INTO UserGameItems(ItemId, UserGameId)
+		SELECT Id, 110 FROM Items WHERE MinLevel BETWEEN 11 AND 12
+	COMMIT
+END
+
+DECLARE @priceItemsFromLevel19To21 MONEY = (SELECT SUM(Price) FROM Items WHERE MinLevel BETWEEN 19 AND 21)
+DECLARE @StamatCashAfter MONEY = (SELECT Cash FROM UsersGames WHERE Id = 110)
+IF(@StamatCashAfter >= @priceItemsFromLevel19To21)
+BEGIN 
+	BEGIN TRANSACTION
+		UPDATE UsersGames SET Cash -= @priceItemsFromLevel19To21
+		WHERE Id = 110
+		INSERT INTO UserGameItems(ItemId, UserGameId)
+		SELECT Id, 110 FROM Items WHERE MinLevel BETWEEN 19 AND 21
+	COMMIT
+END
+
+SELECT I.Name FROM UserGameItems UGI
+JOIN Items I ON I.Id = UGI.ItemId
+WHERE UGI.UserGameId = 110
+ORDER BY I.Name
 
 
 --8. Employees with Three Projects
