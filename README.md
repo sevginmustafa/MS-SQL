@@ -1,2 +1,2 @@
 # MS-SQL
-Here I'll add the solutions of all exercises from the course!
+Here I'll add the solutions of all exercises from the courses!
