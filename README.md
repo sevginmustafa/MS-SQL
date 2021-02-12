@@ -1,2 +1,2 @@
 # MS-SQL
-MS SQL Course from J
+MS SQL Course from 
