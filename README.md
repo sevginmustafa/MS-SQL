@@ -1,2 +1,2 @@
 # MS-SQL
-MS SQL Cour
+MS SQL Cou
