@@ -1,3 +1,3 @@
 # MS-SQL
-MS SQL Course from January 2021 at SoftUni 
+MS SQL Course from January 2021 at SoftUn
 
