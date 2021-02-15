@@ -1,2 +1,2 @@
 # MS-SQL
-MS SQL Course from Januar 
+MS SQL Course from Janu
