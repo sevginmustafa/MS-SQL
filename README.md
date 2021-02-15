@@ -1,2 +1,2 @@
 # MS-SQL
-MS SQL Course from Janu
+MS SQL Course from Ja
