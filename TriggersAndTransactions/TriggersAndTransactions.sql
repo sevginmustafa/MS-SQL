@@ -114,13 +114,7 @@ AS
 	DECLARE @ItemLevel INT = (SELECT MinLevel FROM Items WHERE Id = @ItemId)
 	DECLARE @UserGameLevel INT = (SELECT Level FROM UsersGames WHERE Id = @UserGameId)
 
-	IF(@UserGameLevel < @ItemLevel)
-	BEGIN
-		ROLLBACK;
-		THROW 50001, 'Player cannot buy items higher than his game level!', 1
-		RETURN
-	END
-	ELSE
+	IF(@UserGameLevel >= @ItemLevel)
 	BEGIN
 		INSERT INTO UserGameItems(ItemId, UserGameId) VALUES
 		(@ItemId, @UserGameId)
@@ -133,7 +127,7 @@ WHERE UserId IN(12, 22, 37, 52, 61) AND GameId = 212
 
 
 --6.3
-CREATE OR ALTER PROC ucp_BuyItems(@ItemId INT, @UserId INT, @GameId INT)
+CREATE PROC ucp_BuyItems(@ItemId INT, @UserId INT, @GameId INT)
 AS
 BEGIN TRANSACTION
 	DECLARE @ItemPrice MONEY = (SELECT Price FROM Items WHERE Id = @ItemId)
@@ -153,10 +147,7 @@ BEGIN TRANSACTION
 
 	INSERT INTO UserGameItems(ItemId, UserGameId) VALUES
 	(@ItemId, @UserGameId)
-
-
-SELECT * FROM UsersGames 
-WHERE GameId = 212
+COMMIT
 
 DECLARE @Counter INT = 251;
 
@@ -182,6 +173,16 @@ BEGIN
 	EXEC dbo.ucp_BuyItems @Counter2, 61, 212
 	SET @Counter2 += 1
 END
+
+
+--6.4
+SELECT U.Username, G.Name, UG.Cash, I.Name FROM UsersGames UG
+JOIN Users U ON U.Id =UG.UserId
+JOIN Games G ON G.Id = UG.GameId
+JOIN UserGameItems UGI ON UGI.UserGameId = UG.Id
+JOIN Items I ON I.Id = UGI.ItemId
+WHERE GameId = 212
+ORDER BY U.Username, I.Name
 
 
 --7. *Massive Shopping
