@@ -1,2 +1,2 @@
 # MS-SQL
-MS SQL Course from January 2021 at Sof
+MS SQL Course from January 2021 at S
