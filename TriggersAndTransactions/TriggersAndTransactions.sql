@@ -104,6 +104,84 @@ COMMIT
 
 
 --6. Trigger
+--6.1
+CREATE TRIGGER tr_CheckifItemIsHigherLevel
+ON UserGameItems INSTEAD OF INSERT
+AS 
+	DECLARE @ItemId INT = (SELECT ItemId FROM inserted)
+	DECLARE @UserGameId INT = (SELECT UserGameId FROM inserted)
+
+	DECLARE @ItemLevel INT = (SELECT MinLevel FROM Items WHERE Id = @ItemId)
+	DECLARE @UserGameLevel INT = (SELECT Level FROM UsersGames WHERE Id = @UserGameId)
+
+	IF(@UserGameLevel < @ItemLevel)
+	BEGIN
+		ROLLBACK;
+		THROW 50001, 'Player cannot buy items higher than his game level!', 1
+		RETURN
+	END
+	ELSE
+	BEGIN
+		INSERT INTO UserGameItems(ItemId, UserGameId) VALUES
+		(@ItemId, @UserGameId)
+	END
+
+
+--6.2
+UPDATE UsersGames SET Cash += 50000
+WHERE UserId IN(12, 22, 37, 52, 61) AND GameId = 212
+
+
+--6.3
+CREATE OR ALTER PROC ucp_BuyItems(@ItemId INT, @UserId INT, @GameId INT)
+AS
+BEGIN TRANSACTION
+	DECLARE @ItemPrice MONEY = (SELECT Price FROM Items WHERE Id = @ItemId)
+	DECLARE @UserGameCash MONEY = (SELECT Cash FROM UsersGames WHERE UserId = @UserId AND GameId = @GameId)
+
+	IF(@UserGameCash - @ItemPrice < 0)
+	BEGIN
+		ROLLBACK;
+		THROW 50002, 'Not enough money!', 1
+		RETURN
+	END
+
+	DECLARE @UserGameId INT = (SELECT Id FROM UsersGames WHERE UserId = @UserId AND GameId = @GameId)
+
+	UPDATE UsersGames SET Cash -= @ItemPrice
+	WHERE UserId = @UserId AND GameId = @GameId
+
+	INSERT INTO UserGameItems(ItemId, UserGameId) VALUES
+	(@ItemId, @UserGameId)
+
+
+SELECT * FROM UsersGames 
+WHERE GameId = 212
+
+DECLARE @Counter INT = 251;
+
+WHILE(@Counter <= 299)
+BEGIN		
+	EXEC dbo.ucp_BuyItems @Counter, 12, 212
+	EXEC dbo.ucp_BuyItems @Counter, 22, 212
+	EXEC dbo.ucp_BuyItems @Counter, 37, 212
+	EXEC dbo.ucp_BuyItems @Counter, 52, 212
+	EXEC dbo.ucp_BuyItems @Counter, 61, 212
+
+	SET @Counter += 1
+END
+
+DECLARE @Counter2 INT = 501
+
+WHILE(@Counter2 <= 539)
+BEGIN		
+	EXEC dbo.ucp_BuyItems @Counter2, 12, 212
+	EXEC dbo.ucp_BuyItems @Counter2, 22, 212
+	EXEC dbo.ucp_BuyItems @Counter2, 37, 212
+	EXEC dbo.ucp_BuyItems @Counter2, 52, 212
+	EXEC dbo.ucp_BuyItems @Counter2, 61, 212
+	SET @Counter2 += 1
+END
 
 
 --7. *Massive Shopping
