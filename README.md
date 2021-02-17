@@ -1,2 +1,2 @@
 # MS-SQL
-MS SQL Course from January 202
+MS SQL Course from January 2
