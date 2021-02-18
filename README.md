@@ -1,2 +1,2 @@
 # MS-SQL
-MS SQL Cou
+MS SQL C
