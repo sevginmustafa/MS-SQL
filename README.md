@@ -1,2 +1,1 @@
 # MS-SQL
-MS
